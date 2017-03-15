@@ -1,32 +1,45 @@
 #ifndef _SERVER_H
 #define _SERVER_H
 
-#include <WinSock2.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <string>
+#include <map>
 #include <fstream>
+#include <functional>
 
 #define AppVersion "1.0beta"
-#define DEFAULT_PORT "80"
+#define DEFAULT_PORT "8080"
 #define BUFFER_SIZE 1024*5 // 5KB
 #define ACC_EXT_NUM 48
 #define OS_TYPE_NUM 9
 
 using std::string;
 
-// ERROR HANDLING
-extern std::ofstream logger;
-extern void logError(string msg,int GetLastError=0);
 extern string ToString(int data);
 
+class Request
+{
+public:
+    Request(SOCKET socket, sockaddr_in clientInfo, const std::string& allData);
+
+    SOCKET _socket;
+    sockaddr_in _clientInfo;
+    std::string _method;
+    std::string _uri;
+    std::map<std::string, std::string> _headers;
+    std::string _payload;
+};
 
 class Server
 {
+    std::function<void (const std::string&)> _logging;
 public:
-	Server(void);
+    Server(std::function<void (const std::string&)> logging);
 
 	// Main Functions
 	void Init(); // Initialize Server
-	void Start(); // Start server
+    void Start(std::function<bool (Request)> onConnection); // Start server
 	void Stop(); // Close Server
 	void Communicate(); // Main Loop.
 	void ErrorQuit(); // Quit And Display An Error Message
@@ -37,17 +50,6 @@ public:
 	  void setClientIP(string ip);
 	string getServerIP();
 	string getClientIP();
-
-	// Main CMD Display
-	struct CommandLine{
-		CommandLine();
-		void Display();
-		void Add(string msg);
-		void Clear();
-		// Content
-		string _cmdMessage;
-	}*CMD;
-
 
 private:
 	// Initialize
@@ -85,7 +87,7 @@ private:
 	    int sendFile();
 	   void sendHeader(); // Send Header Info
 	   void sendMessage(string msg); // Send Text Files
-	   int  sendData(char*data); // Send Other Type Files In Binary
+       int  sendData(const char*data); // Send Other Type Files In Binary
 	   void closeConnection(); // Close Connections
 
 

@@ -1,6 +1,4 @@
-HTTP Web Server
+http2go
 ===============
 
-This is a simple web server that I created some years ago.Code may not be clear or well commented but maybe someone that wants to do some sockets programming may find it usefull.   
-   
-It supports only HTML pages and some certain file types for download.   
+Simple HTTP server forked from https://github.com/geocool/HTTP-Web-Server. Goal is to serve any file from the working directory and support basic REST data functionality.
