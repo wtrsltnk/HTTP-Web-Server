@@ -4,14 +4,17 @@ project(http2go)
 
 set(FILES
     main.cpp
-    server.cpp
+    httpserver.cpp
+    httprequest.cpp
+    httpresponse.cpp
+    libs/system.io/src/system.io.cpp
     )
 
 add_executable(http2go ${FILES})
 
-#target_include_directories(http2go
-#    PRIVATE libs/scintilla/include
-#    )
+target_include_directories(http2go
+    PRIVATE libs/system.io/include
+    )
 
 target_compile_features(http2go
     PRIVATE cxx_auto_type

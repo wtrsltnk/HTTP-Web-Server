@@ -1,0 +1,3 @@
+[submodule "libs/system.io"]
+	path = libs/system.io
+	url = https://github.com/wtrsltnk/system.io.git
