@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include "httpserver.h"
@@ -66,10 +67,12 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
 
     std::stringstream ss;
 
-    ss << "<html><body>";
-
     if (System::IO::DirectoryInfo(fullPath).Exists())
     {
+        std::stringstream ss;
+
+        ss << "<html><body>";
+
         System::IO::DirectoryInfo directory(fullPath);
         std::cout << "directory.FullName()           " << directory.FullName() << std::endl;
         std::cout << "directory.Parent().FullName()  " << directory.Parent().FullName() << std::endl;
@@ -101,16 +104,50 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
             ss << "<li><a href=\"" << relativePath << "\">" << fileInfo.Name() << "</a></li>";
         }
         ss << "</ul>";
+
+        ss << "</body></html>";
+
+        response.addHeader("Content-Type", "text/html");
     }
     else if (System::IO::FileInfo(fullPath).Exists())
     {
+        ifstream file;
+        auto ext = fullPath.substr(fullPath.find_last_of('.'));
+        if (ext == ".json")
+        {
+            file = ifstream(fullPath);
+            response.addHeader("Content-Type", "application/json");
+        }
+        else if (ext == ".jpg")
+        {
+            file = ifstream(fullPath, ios::binary);
+            response.addHeader("Content-Type", "image/jpeg");
+        }
+        else if (ext == ".mp4")
+        {
+            file = ifstream(fullPath, ios::binary);
+            response.addHeader("Content-Type", "videos/mp4");
+        }
+        else
+        {
+            file = ifstream(fullPath);
+            response.addHeader("Content-Type", "text/html");
+        }
+
+        copy(istreambuf_iterator<char>(file),
+             istreambuf_iterator<char>(),
+             ostreambuf_iterator<char>(ss));
     }
     else
     {
-        ss << request._uri << " does not exist";
-    }
+        ss << "<html><body>";
 
-    ss << "</body></html>";
+        ss << request._uri << " does not exist";
+
+        ss << "</body></html>";
+
+        response.addHeader("Content-Type", "text/html");
+    }
 
     response._response += ss.str();
 
