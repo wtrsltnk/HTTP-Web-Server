@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <regex>
 #include "httpserver.h"
 #include "httprequest.h"
 #include "httpresponse.h"
@@ -64,6 +65,8 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
     auto fullPath = System::IO::Path::Combine(this->_root.FullName(), uri);
 
     std::cout << fullPath << std::endl;
+
+    for (auto header : request._headers) std::cout << "[header] " << header.first << ": " << header.second << "\n";
 
     std::stringstream ss;
 
@@ -151,6 +154,25 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
 
     response._response += ss.str();
 
+    if (request._headers.find("if-range") != request._headers.end())
+    {
+        std::cout << "they want ranges\n";
+    }
+    if (request._headers.find("Range") != request._headers.end())
+    {
+        auto range = request._headers.at("Range");
+        std::regex rangeRegex("bytes=([0-9]+)-([0-9]*)");
+        std::smatch str_match_result;
+        if (std::regex_match(range, str_match_result, rangeRegex))
+        {
+            auto start = std::stoi(str_match_result[1]);
+            auto end = str_match_result[2] != "" ? std::stoi(str_match_result[2]) : start + 500;
+
+            response._response = response._response.substr(start, end - start);
+            response._responseCode = 206;
+        }
+    }
+
     return response;
 }
 
@@ -172,5 +194,5 @@ int main(int argc,char*argv[])
         return handler.ConstructResponse(request);
     });
 
-	return 0;
+    return 0;
 }

@@ -2,52 +2,54 @@
 #include "httpresponse.h"
 #include <algorithm>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 using namespace web;
 
 static std::map<int, std::string> responseCodes = std::map<int, std::string>({
-                                                                               { 100, "Continue" },
-                                                                               { 101, "Switching Protocols" },
-                                                                               { 200, "OK" },
-                                                                               { 201, "Created" },
-                                                                               { 202, "Accepted" },
-                                                                               { 203, "Non-Authoritative Information" },
-                                                                               { 204, "No Content" },
-                                                                               { 205, "Reset Content" },
-                                                                               { 206, "Partial Content" },
-                                                                               { 300, "Multiple Choices" },
-                                                                               { 301, "Moved Permanently" },
-                                                                               { 302, "Found" },
-                                                                               { 303, "See Other" },
-                                                                               { 304, "Not Modified" },
-                                                                               { 305, "Use Proxy" },
-                                                                               { 306, "(Unused)" },
-                                                                               { 307, "Temporary Redirect" },
-                                                                               { 400, "Bad Request" },
-                                                                               { 401, "Unauthorized" },
-                                                                               { 402, "Payment Required" },
-                                                                               { 403, "Forbidden" },
-                                                                               { 404, "Not Found" },
-                                                                               { 405, "Method Not Allowed" },
-                                                                               { 406, "Not Acceptable" },
-                                                                               { 407, "Proxy Authentication Required" },
-                                                                               { 408, "Request Timeout" },
-                                                                               { 409, "Conflict" },
-                                                                               { 410, "Gone" },
-                                                                               { 411, "Length Required" },
-                                                                               { 412, "Precondition Failed" },
-                                                                               { 413, "Request Entity Too Large" },
-                                                                               { 414, "Request-URI Too Long" },
-                                                                               { 415, "Unsupported Media Type" },
-                                                                               { 416, "Requested Range Not Satisfiable" },
-                                                                               { 417, "Expectation Failed" },
-                                                                               { 500, "Internal Server Error" },
-                                                                               { 501, "Not Implemented" },
-                                                                               { 502, "Bad Gateway" },
-                                                                               { 503, "Service Unavailable" },
-                                                                               { 504, "Gateway Timeout" },
-                                                                               { 505, "HTTP Version Not Supported" }
-                                                                           });
+                                                                                 { 100, "Continue" },
+                                                                                 { 101, "Switching Protocols" },
+                                                                                 { 200, "OK" },
+                                                                                 { 201, "Created" },
+                                                                                 { 202, "Accepted" },
+                                                                                 { 203, "Non-Authoritative Information" },
+                                                                                 { 204, "No Content" },
+                                                                                 { 205, "Reset Content" },
+                                                                                 { 206, "Partial Content" },
+                                                                                 { 300, "Multiple Choices" },
+                                                                                 { 301, "Moved Permanently" },
+                                                                                 { 302, "Found" },
+                                                                                 { 303, "See Other" },
+                                                                                 { 304, "Not Modified" },
+                                                                                 { 305, "Use Proxy" },
+                                                                                 { 306, "(Unused)" },
+                                                                                 { 307, "Temporary Redirect" },
+                                                                                 { 400, "Bad Request" },
+                                                                                 { 401, "Unauthorized" },
+                                                                                 { 402, "Payment Required" },
+                                                                                 { 403, "Forbidden" },
+                                                                                 { 404, "Not Found" },
+                                                                                 { 405, "Method Not Allowed" },
+                                                                                 { 406, "Not Acceptable" },
+                                                                                 { 407, "Proxy Authentication Required" },
+                                                                                 { 408, "Request Timeout" },
+                                                                                 { 409, "Conflict" },
+                                                                                 { 410, "Gone" },
+                                                                                 { 411, "Length Required" },
+                                                                                 { 412, "Precondition Failed" },
+                                                                                 { 413, "Request Entity Too Large" },
+                                                                                 { 414, "Request-URI Too Long" },
+                                                                                 { 415, "Unsupported Media Type" },
+                                                                                 { 416, "Requested Range Not Satisfiable" },
+                                                                                 { 417, "Expectation Failed" },
+                                                                                 { 500, "Internal Server Error" },
+                                                                                 { 501, "Not Implemented" },
+                                                                                 { 502, "Bad Gateway" },
+                                                                                 { 503, "Service Unavailable" },
+                                                                                 { 504, "Gateway Timeout" },
+                                                                                 { 505, "HTTP Version Not Supported" }
+                                                                             });
 
 // trim from start
 static inline std::string &ltrim(std::string &s) {
@@ -143,52 +145,16 @@ void Request::handleRequest(std::function<Response (const Request)> onConnection
 
     std::stringstream headers;
 
-    if (response._responseCode == 200 && response._response.size() > STREAMING_TRESHOLD)
-    {
-        headers << "HTTP/1.1 206 " << responseCodes[206] << "\r\n";
+    headers << "HTTP/1.1 " << response._responseCode << " " << responseCodes[response._responseCode] << "\r\n";
 
-        for (auto pair : response._headers)
-            headers << pair.first << ": " << pair.second << "\r\n";
+    for (auto pair : response._headers)
+        headers << pair.first << ": " << pair.second << "\r\n";
 
-        headers << "Content-Length: " << response._response.size() << "\r\n"
-                << "Content-Type: multipart/byteranges; boundary=THIS_STRING_SEPARATES"
-                << "\r\n" << "\r\n";
+    headers << "Content-Length: " << response._response.size() << "\r\n"
+            << "\r\n";
 
-        send(request._socket, headers.str().c_str(), headers.str().size(), 0);
-
-        int sendBytes = 0;
-
-        while (sendBytes < response._response.size())
-        {
-            std::stringstream range;
-            range << "--THIS_STRING_SEPARATES\r\n"
-                  << "Content-Type: " << response._headers["Content-Type"] << "\r\n"
-                  << "Content-Range: bytes " << sendBytes << "-" << (sendBytes + STREAMING_TRESHOLD) << "/" << response._response.size()
-                  << "\r\n" << "\r\n";
-
-            send(request._socket, range.str().c_str(), range.str().size(), 0);
-
-            send(request._socket, response._response.substr(sendBytes, STREAMING_TRESHOLD).c_str(), STREAMING_TRESHOLD, 0);
-
-            sendBytes += STREAMING_TRESHOLD;
-        }
-
-        std::string r("--THIS_STRING_SEPARATES--");
-        send(request._socket, r.c_str(), r.size(), 0);
-    }
-    else
-    {
-        headers << "HTTP/1.1 " << response._responseCode << " " << responseCodes[response._responseCode] << "\r\n";
-
-        for (auto pair : response._headers)
-            headers << pair.first << ": " << pair.second << "\r\n";
-
-        headers << "Content-Length: " << response._response.size() << "\r\n"
-                << "\r\n";
-
-        send(request._socket, headers.str().c_str(), headers.str().size(), 0);
-        send(request._socket, response._response.c_str(), response._response.size(), 0);
-    }
+    send(request._socket, headers.str().c_str(), headers.str().size(), 0);
+    send(request._socket, response._response.c_str(), response._response.size(), 0);
 
     shutdown(request._socket, SD_BOTH);
     closesocket(request._socket);
