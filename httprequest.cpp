@@ -141,6 +141,15 @@ std::string Request::getMessage()
 // The function we want to execute on the new thread.
 void Request::handleRequest(std::function<int (const Request&, Response &)> onConnection, Request request)
 {
+    if (request._method == "")
+    {
+        // This is no HTTP request
+        shutdown(request._socket, SD_BOTH);
+        closesocket(request._socket);
+
+        return;
+    }
+
     Response response;
 
     int responseCode = onConnection(request, response);

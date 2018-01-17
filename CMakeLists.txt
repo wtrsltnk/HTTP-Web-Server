@@ -5,8 +5,16 @@ project(http2go)
 set(FILES
     main.cpp
     httpserver.cpp
+    httpserver.h
     httprequest.cpp
+    httprequest.h
     httpresponse.cpp
+    httpresponse.h
+    httputility.h
+    libs/system.io/include/system.io.directoryinfo.h
+    libs/system.io/include/system.io.fileinfo.h
+    libs/system.io/include/system.io.filesysteminfo.h
+    libs/system.io/include/system.io.path.h
     libs/system.io/src/system.io.cpp
     )
 

@@ -7,6 +7,7 @@
 #include "httpserver.h"
 #include "httprequest.h"
 #include "httpresponse.h"
+#include "httputility.h"
 #include <system.io.directoryinfo.h>
 #include <system.io.fileinfo.h>
 #include <system.io.path.h>
@@ -56,7 +57,14 @@ FileSystemRequestHandler::~FileSystemRequestHandler() { }
 int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web::Response& response)
 {
     auto uri = request._uri;
-    if (uri[0] == '/') uri = uri.substr(1);
+    if (uri[0] != '/')
+    {
+        return 500;
+    }
+
+    uri = uri.substr(1);
+
+    uri = url_decode(uri);
 
     auto fullPath = System::IO::Path::Combine(this->_root.FullName(), uri);
 
@@ -109,7 +117,9 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
     else if (System::IO::FileInfo(fullPath).Exists())
     {
         ifstream file;
-        auto ext = fullPath.substr(fullPath.find_last_of('.'));
+        auto extpos = fullPath.find_last_of('.');
+        auto ext = extpos != std::string::npos ? fullPath.substr(extpos) : "";
+
         if (ext == ".json")
         {
             file = ifstream(fullPath);
@@ -129,6 +139,16 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
         {
             file = ifstream(fullPath, ios::binary);
             response.addHeader("Content-Type", "application/xml");
+        }
+        else if (ext == ".js")
+        {
+            file = ifstream(fullPath, ios::binary);
+            response.addHeader("Content-Type", "application/javascript");
+        }
+        else if (ext == ".css")
+        {
+            file = ifstream(fullPath, ios::binary);
+            response.addHeader("Content-Type", "application/stylesheet");
         }
         else
         {
@@ -183,18 +203,29 @@ int main(int argc,char*argv[])
         std::cout << message << std::endl;
     });
 
+    System::IO::FileInfo exe(argv[0]);
+
     server.Init();
 
-    if (server.Start())
+    while (!server.Start())
     {
-        server.WaitForRequests([] (const web::Request request, web::Response & response) -> int {
-            std::cout << "Request recieved from " << request.ipAddress()
-                      << " for " << request._uri << std::endl;
-
-            FileSystemRequestHandler handler("C:\\temp");
-//            StringRequestHandler handler("Test string");
-            return handler.ConstructResponse(request, response);
-        });
+        server.SetPortA(server.Port() + 1);
+        if (server.Port() > 9999)
+        {
+            std::cerr << "No available port to listen on" << std::endl;
+            return 1;
+        }
     }
+
+    ShellExecute(0, 0, server.LocalUrl().c_str(), 0, 0 , SW_SHOW);
+
+    server.WaitForRequests([exe] (const web::Request request, web::Response & response) -> int {
+        std::cout << "Request recieved from " << request.ipAddress()
+                  << " for " << request._uri << std::endl;
+
+        FileSystemRequestHandler handler(exe.Directory().FullName());
+        return handler.ConstructResponse(request, response);
+    });
+
     return 0;
 }

@@ -29,6 +29,8 @@ public:
     int Port() const;
     void SetPort(int port);
 
+    std::string LocalUrl() const;
+
     bool Init(); // Initialize Server
     bool Start(); // Start server
     void WaitForRequests(std::function<int (const class Request&, class Response &)> onConnection);

@@ -47,6 +47,15 @@ void HttpServer::SetPort(int port)
     _port = port;
 }
 
+std::string HttpServer::LocalUrl() const
+{
+    std::stringstream ss;
+
+    ss << "http://localhost:" << _port << "/";
+
+    return ss.str();
+}
+
 // Main Functions
 bool HttpServer::Init()
 {
