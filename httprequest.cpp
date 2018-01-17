@@ -139,16 +139,20 @@ std::string Request::getMessage()
 #define STREAMING_TRESHOLD 1024
 
 // The function we want to execute on the new thread.
-void Request::handleRequest(std::function<Response (const Request)> onConnection, Request request)
+void Request::handleRequest(std::function<int (const Request&, Response &)> onConnection, Request request)
 {
-    Response response = onConnection(request);
+    Response response;
+
+    int responseCode = onConnection(request, response);
 
     std::stringstream headers;
 
-    headers << "HTTP/1.1 " << response._responseCode << " " << responseCodes[response._responseCode] << "\r\n";
+    headers << "HTTP/1.1 " << responseCode << " " << responseCodes[responseCode] << "\r\n";
 
     for (auto pair : response._headers)
+    {
         headers << pair.first << ": " << pair.second << "\r\n";
+    }
 
     headers << "Content-Length: " << response._response.size() << "\r\n"
             << "\r\n";

@@ -20,21 +20,19 @@ public:
     StringRequestHandler(const std::string& message);
     virtual ~StringRequestHandler();
 
-    virtual web::Response ConstructResponse(const web::Request& request);
+    virtual int ConstructResponse(const web::Request &request, web::Response &response);
 
 };
 
-StringRequestHandler::StringRequestHandler(const std::string& message) : _message(message) { }
+StringRequestHandler::StringRequestHandler(const std::string &message) : _message(message) { }
 
 StringRequestHandler::~StringRequestHandler() { }
 
-web::Response StringRequestHandler::ConstructResponse(const web::Request &request)
+int StringRequestHandler::ConstructResponse(const web::Request &request, web::Response &response)
 {
-    web::Response response;
-
     response._response += this->_message;
 
-    return response;
+    return 200;
 }
 
 class FileSystemRequestHandler : public web::RequestHandler
@@ -44,7 +42,7 @@ public:
     FileSystemRequestHandler(const std::string& root);
     virtual ~FileSystemRequestHandler();
 
-    virtual web::Response ConstructResponse(const web::Request& request);
+    virtual int ConstructResponse(const web::Request &request, web::Response &response);
 };
 
 FileSystemRequestHandler::FileSystemRequestHandler(const std::string& root)
@@ -55,10 +53,8 @@ FileSystemRequestHandler::FileSystemRequestHandler(const std::string& root)
 
 FileSystemRequestHandler::~FileSystemRequestHandler() { }
 
-web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &request)
+int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web::Response& response)
 {
-    web::Response response;
-
     auto uri = request._uri;
     if (uri[0] == '/') uri = uri.substr(1);
 
@@ -72,8 +68,6 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
 
     if (System::IO::DirectoryInfo(fullPath).Exists())
     {
-        std::stringstream ss;
-
         ss << "<html><body>";
 
         System::IO::DirectoryInfo directory(fullPath);
@@ -131,6 +125,11 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
             file = ifstream(fullPath, ios::binary);
             response.addHeader("Content-Type", "videos/mp4");
         }
+        else if (ext == ".xml")
+        {
+            file = ifstream(fullPath, ios::binary);
+            response.addHeader("Content-Type", "application/xml");
+        }
         else
         {
             file = ifstream(fullPath);
@@ -173,7 +172,7 @@ web::Response FileSystemRequestHandler::ConstructResponse(const web::Request &re
         }
     }
 
-    return response;
+    return 200;
 }
 
 int main(int argc,char*argv[])
@@ -186,13 +185,16 @@ int main(int argc,char*argv[])
 
     server.Init();
 
-    server.Start([] (const web::Request request) -> web::Response {
-        std::cout << "Request recieved from " << request.ipAddress()
-                  << " for " << request._uri << std::endl;
+    if (server.Start())
+    {
+        server.WaitForRequests([] (const web::Request request, web::Response & response) -> int {
+            std::cout << "Request recieved from " << request.ipAddress()
+                      << " for " << request._uri << std::endl;
 
-        FileSystemRequestHandler handler("C:\\temp");
-        return handler.ConstructResponse(request);
-    });
-
+            FileSystemRequestHandler handler("C:\\temp");
+//            StringRequestHandler handler("Test string");
+            return handler.ConstructResponse(request, response);
+        });
+    }
     return 0;
 }

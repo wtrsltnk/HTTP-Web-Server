@@ -30,7 +30,7 @@ HttpServer::HttpServer(int port)
     _maxConnections = 50;
     _listeningSocket = INVALID_SOCKET;
     _socketVersion = MAKEWORD(2,2);
-    _port = ToString(port);
+    _port = port;
 }
 
 void HttpServer::SetLogging(std::function<void(const std::string&)> logging)
@@ -38,26 +38,37 @@ void HttpServer::SetLogging(std::function<void(const std::string&)> logging)
     this->_logging = logging;
 }
 
+int HttpServer::Port() const
+{
+    return _port;
+}
+void HttpServer::SetPort(int port)
+{
+    _port = port;
+}
+
 // Main Functions
-void HttpServer::Init()
+bool HttpServer::Init()
 {
     // Start Winsocket
     auto resultCode = WSAStartup(_socketVersion, &_wsaData);
     if(0 != resultCode)
     {
         this->_logging("Initialize Failed \nError Code : " + ToString(resultCode));
-        ErrorQuit();
+        return false;
     }
 }
 
-void HttpServer::Start(std::function<Response (const Request)> onConnection)
+bool HttpServer::Start()
 {
+    std::string port = ToString(_port);
+
     // Resolve Local Address And Port
-    auto resultCode = getaddrinfo(NULL, _port.c_str(), &_hints, &_result);
+    auto resultCode = getaddrinfo(NULL, port.c_str(), &_hints, &_result);
     if (0 != resultCode)
     {
         this->_logging("Resolving Address And Port Failed \nError Code: " + ToString(resultCode));
-        ErrorQuit();
+        return false;
     }
 
     // Create Socket
@@ -65,7 +76,7 @@ void HttpServer::Start(std::function<Response (const Request)> onConnection)
     if (INVALID_SOCKET == _listeningSocket)
     {
         this->_logging("Could't Create Socket");
-        ErrorQuit();
+        return false;
     }
 
     // Bind
@@ -73,21 +84,26 @@ void HttpServer::Start(std::function<Response (const Request)> onConnection)
     if (SOCKET_ERROR == resultCode)
     {
         this->_logging("Bind Socket Failed");
-        ErrorQuit();
+        return false;
     }
 
     // Listen
     resultCode = listen(_listeningSocket, _maxConnections);
     if (SOCKET_ERROR == resultCode)
     {
-        this->_logging("Listening On Port " + _port + " Failed");
-        ErrorQuit();
+        this->_logging("Listening On Port " + ToString(_port) + " Failed");
+        return false;
     }
     else
     {
-        this->_logging("-Server Is Up And Running.\n--Listening On Port " + _port + "...");
+        this->_logging("-Server Is Up And Running.\n--Listening On Port " + ToString(_port) + "...");
     }
 
+    return true;
+}
+
+void HttpServer::WaitForRequests(std::function<int (const Request &, Response &)> onConnection)
+{
     while (true)
     {
         sockaddr_in clientInfo;
@@ -112,10 +128,4 @@ void HttpServer::Stop()
 {
     closesocket(_listeningSocket);
     WSACleanup();
-}
-
-void HttpServer::ErrorQuit()
-{
-    Stop();
-    this->_logging("An Error Occurred.");
 }

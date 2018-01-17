@@ -19,7 +19,7 @@ class Request
 public:
     Request(SOCKET socket, sockaddr_in clientInfo);
 
-    static void handleRequest(std::function<class Response (const Request)> onConnection, Request request);
+    static void handleRequest(std::function<int (const Request &, class Response &)> onConnection, Request request);
 
     std::string _method;
     std::string _uri;
@@ -34,7 +34,7 @@ class RequestHandler
 public:
     virtual ~RequestHandler() { }
 
-    virtual class Response ConstructResponse(const Request& request) = 0;
+    virtual int ConstructResponse(const Request& request, class Response& response) = 0;
 };
 
 }
