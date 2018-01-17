@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.3)
 
 project(http2go)
 
+find_package(OPENGL REQUIRED)
+
 set(FILES
     main.cpp
     httpserver.cpp
@@ -11,6 +13,11 @@ set(FILES
     httpresponse.cpp
     httpresponse.h
     httputility.h
+    libs/imgui/imgui.cpp
+    libs/imgui/imgui.h
+    libs/imgui/imgui_draw.cpp
+    libs/imgui/imgui_impl_glfw.cpp
+    libs/imgui/imgui_impl_glfw.h
     libs/system.io/include/system.io.directoryinfo.h
     libs/system.io/include/system.io.fileinfo.h
     libs/system.io/include/system.io.filesysteminfo.h
@@ -18,10 +25,11 @@ set(FILES
     libs/system.io/src/system.io.cpp
     )
 
-add_executable(http2go ${FILES})
+add_executable(http2go WIN32 ${FILES})
 
 target_include_directories(http2go
     PRIVATE libs/system.io/include
+    PRIVATE libs/imgui
     )
 
 target_compile_features(http2go
@@ -32,7 +40,7 @@ target_compile_features(http2go
     )
 
 target_link_libraries(http2go
-    ws2_32
+    ws2_32 ${OPENGL_LIBRARIES}
     )
 
 target_compile_definitions(http2go
