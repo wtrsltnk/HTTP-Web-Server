@@ -16,4 +16,4 @@ build_script:
     cmake --build . --config "Debug"
 
 artifacts:
-- path: '**\*.exe'
+- path: 'bld\$(configuration)\*.exe'
