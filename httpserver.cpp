@@ -66,6 +66,8 @@ bool HttpServer::Init()
         this->_logging("Initialize Failed \nError Code : " + ToString(resultCode));
         return false;
     }
+
+    return true;
 }
 
 bool HttpServer::Start()

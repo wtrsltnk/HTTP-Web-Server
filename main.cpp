@@ -86,7 +86,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     int windowWidth = 1, windowHeight = 1;
 
     std::unique_ptr<bool[]> mimeTypeSelection(new bool[handler.GetMimeTypes().Data().size()]);
-    for (int i = 0; i < handler.GetMimeTypes().Data().size(); i++)
+    for (std::string::size_type i = 0; i < handler.GetMimeTypes().Data().size(); i++)
     {
         mimeTypeSelection[i] = false;
     }
@@ -171,7 +171,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                     }
 
                     mimeTypeSelection = std::unique_ptr<bool[]>(new bool[handler.GetMimeTypes().Data().size()]);
-                    for (int i = 0; i < handler.GetMimeTypes().Data().size(); i++)
+                    for (std::string::size_type i = 0; i < handler.GetMimeTypes().Data().size(); i++)
                     {
                         mimeTypeSelection[i] = false;
                     }
@@ -179,7 +179,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 ImGui::SameLine();
                 if (ImGui::Button("Clear selected"))
                 {
-                    for (int i = 0; i < handler.GetMimeTypes().Data().size(); i++)
+                    for (std::string::size_type i = 0; i < handler.GetMimeTypes().Data().size(); i++)
                     {
                         mimeTypeSelection[i] = false;
                     }
