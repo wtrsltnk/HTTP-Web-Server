@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <string>
+#include <cctype>
 
 char from_hex(char ch)
 {
