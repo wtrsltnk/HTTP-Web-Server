@@ -14,3 +14,6 @@ build_script:
     cmake c:\projects\source -G "Visual Studio 15"
 
     cmake --build . --config "Debug"
+
+artifacts:
+- path: '**\*.exe'
