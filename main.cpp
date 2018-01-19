@@ -17,13 +17,13 @@
 #include <GL/gl.h>
 
 static web::HttpServer server;
-static ExampleAppLog log;
+static ExampleAppLog appLog;
 static FileSystemRequestHandler handler;
 
 static void startServer(System::IO::FileInfo exe)
 {
     server.WaitForRequests([exe] (const web::Request request, web::Response & response) -> int {
-        log.AddLog("Request recieved from %s for %s", request.ipAddress().c_str(), request._uri.c_str());
+        appLog.AddLog("Request recieved from %s for %s", request.ipAddress().c_str(), request._uri.c_str());
 
         return handler.ConstructResponse(request, response);
     });
@@ -37,15 +37,15 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     std::string exePath(szFileName);
 
     server.SetLogging([] (const std::string& message) {
-        log.AddLog((message + "\n").c_str());
+        appLog.AddLog((message + "\n").c_str());
     });
 
     System::IO::FileInfo exe(exePath);
 
     handler.SetRoot(exe.Directory().FullName());
     handler.SetLogging([] (const std::string& message) {
-        log.AddLog(message.c_str());
-        log.AddLog("\n");
+        appLog.AddLog(message.c_str());
+        appLog.AddLog("\n");
     });
 
     System::IO::FileInfo mimeTypesPath("mimetypes.config");
@@ -130,7 +130,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 ImGui::SameLine();
                 ImGui::Text(server.LocalUrl().c_str());
 
-                log.Draw("Request Log");
+                appLog.Draw("Request Log");
 
                 ImGui::End();
             }
@@ -188,11 +188,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 {
                     if (!handler.GetMimeTypes().SaveToFile(mimeTypesPath.FullName()))
                     {
-                        log.AddLog("Failed to save mimetypes");
+                        appLog.AddLog("Failed to save mimetypes");
                     }
                     else
                     {
-                        log.AddLog("Mimetypes saved");
+                        appLog.AddLog("Mimetypes saved");
                     }
                 }
                 ImGui::Columns(3, "Mime types", false);
