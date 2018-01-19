@@ -100,7 +100,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             ImGui::Begin("Test", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
             {
                 ImGui::SetWindowPos(ImVec2(0, 0));
-                ImGui::SetWindowSize(ImVec2(windowWidth / 2.0f, windowHeight));
+                ImGui::SetWindowSize(ImVec2(windowWidth / 2.0f, float(windowHeight)));
 
                 if (ImGui::Button("Open URL"))
                 {
@@ -138,7 +138,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             ImGui::Begin("Mime types", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
             {
                 ImGui::SetWindowPos(ImVec2(windowWidth / 2.0f, 0));
-                ImGui::SetWindowSize(ImVec2(windowWidth / 2.0f, windowHeight));
+                ImGui::SetWindowSize(ImVec2(windowWidth / 2.0f, float(windowHeight)));
 
                 static char Extension[8] = { 0 };
                 ImGui::InputText("Extension", Extension, 8);
