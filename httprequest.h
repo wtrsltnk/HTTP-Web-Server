@@ -34,7 +34,7 @@ class RequestHandler
 public:
     virtual ~RequestHandler() { }
 
-    virtual int ConstructResponse(const Request& request, class Response& response) = 0;
+    virtual int ConstructResponse(const Request& request, class Response& response) const = 0;
 };
 
 }

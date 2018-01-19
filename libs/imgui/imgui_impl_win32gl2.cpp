@@ -1,4 +1,4 @@
-// ImGui GLFW binding with OpenGL (legacy, fixed pipeline)
+// ImGui Win32 binding with OpenGL (legacy, fixed pipeline)
 // In this binding, ImTextureID is used to store an OpenGL 'GLuint' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
 
@@ -16,21 +16,22 @@
 // https://github.com/ocornut/imgui
 
 #include <imgui.h>
-#include "imgui_impl_glfw.h"
+#include "imgui_impl_win32gl2.h"
 
 #include <iostream>
 #include <windows.h>
 #include <GL/gl.h>
 
 // Data
-static HINSTANCE g_hInstance = NULL;
-static HWND g_hWnd = NULL;
-static HDC g_hDc = NULL;
-static HGLRC g_hRc = NULL;
-static int g_iWidth = 100;
-static int g_iHeight = 100;
-static int g_iMouseX = 0;
-static int g_iMouseY = 0;
+static HINSTANCE    g_hInstance = NULL;
+static HWND         g_hWnd = NULL;
+static HDC          g_hDc = NULL;
+static HGLRC        g_hRc = NULL;
+
+static int          g_iWidth = 100;
+static int          g_iHeight = 100;
+static int          g_iMouseX = 0;
+static int          g_iMouseY = 0;
 
 static double       g_Time = 0.0f;
 static bool         g_MousePressed[3] = { false, false, false };
@@ -74,7 +75,7 @@ bool ImGui_ImplWin32GL2_CreateDeviceObjects()
     return true;
 }
 
-void    ImGui_ImplWin32GL2_InvalidateDeviceObjects()
+void ImGui_ImplWin32GL2_InvalidateDeviceObjects()
 {
     if (g_FontTexture)
     {
@@ -102,6 +103,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
     case WM_KEYUP:
     {
+        // Cannot use 'auto' here, that will create a const reference i guess?
         ImGuiIO& io = ImGui::GetIO();
         io.KeysDown[wParam] = (message == WM_KEYDOWN);
 
@@ -162,7 +164,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     case WM_MOUSEWHEEL:
     {
-        g_MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam);
+        g_MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / 100;
         break;
     }
     }
@@ -262,8 +264,6 @@ bool ImGui_ImplWin32GL2_Init(const char *title, int w, int h)
         return false;
     }
 
-    wglMakeCurrent(g_hDc, g_hRc);
-
     ShowWindow(g_hWnd, SW_SHOW);
 
     ImGuiIO& io = ImGui::GetIO();
@@ -298,6 +298,13 @@ bool ImGui_ImplWin32GL2_Init(const char *title, int w, int h)
     {
         return false;
     }
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 0.0f;
+    style.WindowPadding = ImVec2(10.0f, 10.0f);
+    style.ItemSpacing = ImVec2(10.0f, 10.0f);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.0f, 0.2f, 0.4f, 1.0f);
+
     return true;
 }
 

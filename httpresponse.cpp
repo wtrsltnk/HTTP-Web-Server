@@ -6,7 +6,7 @@ Response::Response() : _responseCode(200) { }
 
 Response::~Response() { }
 
-void Response::addHeader(const std::string& key, const std::string& value)
+void Response::addHeader(std::string const &key, std::string const &value)
 {
     this->_headers.insert(std::make_pair(key, value));
 }

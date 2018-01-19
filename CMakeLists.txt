@@ -5,7 +5,8 @@ project(http2go)
 find_package(OPENGL REQUIRED)
 
 set(FILES
-    main.cpp
+    filesystemrequesthandler.cpp
+    filesystemrequesthandler.h
     httpserver.cpp
     httpserver.h
     httprequest.cpp
@@ -13,11 +14,17 @@ set(FILES
     httpresponse.cpp
     httpresponse.h
     httputility.h
+    main.cpp
+    mimetypes.cpp
+    mimetypes.h
+    stringrequesthandler.cpp
+    stringrequesthandler.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui.h
     libs/imgui/imgui_draw.cpp
-    libs/imgui/imgui_impl_glfw.cpp
-    libs/imgui/imgui_impl_glfw.h
+    libs/imgui/imgui_impl_win32gl2.cpp
+    libs/imgui/imgui_impl_win32gl2.h
+    libs/imgui/imgui_applog.h
     libs/system.io/include/system.io.directoryinfo.h
     libs/system.io/include/system.io.fileinfo.h
     libs/system.io/include/system.io.filesysteminfo.h

@@ -15,7 +15,7 @@ public:
     Response();
     virtual ~Response();
 
-    void addHeader(const std::string& key, const std::string& value);
+    void addHeader(std::string const &key, std::string const &value);
 
     int _responseCode;
     std::map<std::string, std::string> _headers;
