@@ -7,6 +7,8 @@ find_package(OPENGL REQUIRED)
 set(FILES
     filesystemrequesthandler.cpp
     filesystemrequesthandler.h
+    helprequesthandler.cpp
+    helprequesthandler.h
     httpserver.cpp
     httpserver.h
     httprequest.cpp

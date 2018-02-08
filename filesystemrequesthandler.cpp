@@ -44,7 +44,7 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
 
     auto fullPath = System::IO::Path::Combine(this->_root.FullName(), uri);
 
-    _logging(fullPath);
+    _logging(fullPath + "\n");
 
     for (auto header : request._headers)
     {
@@ -118,10 +118,6 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
 
     response._response += ss.str();
 
-    if (request._headers.find("if-range") != request._headers.end())
-    {
-        _logging("they want ranges\n");
-    }
     if (request._headers.find("Range") != request._headers.end())
     {
         auto range = request._headers.at("Range");

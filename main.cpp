@@ -3,6 +3,7 @@
 #include "httprequest.h"
 #include "httpresponse.h"
 #include "filesystemrequesthandler.h"
+#include "helprequesthandler.h"
 
 #include <iostream>
 #include <string>
@@ -19,11 +20,17 @@
 static web::HttpServer server;
 static ExampleAppLog appLog;
 static FileSystemRequestHandler handler;
+static HelpRequestHandler helpHandler;
 
 static void startServer(System::IO::FileInfo exe)
 {
     server.WaitForRequests([exe] (const web::Request request, web::Response & response) -> int {
-        appLog.AddLog("Request recieved from %s for %s", request.ipAddress().c_str(), request._uri.c_str());
+        appLog.AddLog("Request recieved from %s for %s\n", request.ipAddress().c_str(), request._uri.c_str());
+
+        if (request._uri.substr(0, 5) == "/help")
+        {
+            return helpHandler.ConstructResponse(request, response);
+        }
 
         return handler.ConstructResponse(request, response);
     });
