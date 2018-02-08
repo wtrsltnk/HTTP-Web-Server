@@ -32,6 +32,8 @@ MimeTypes &FileSystemRequestHandler::GetMimeTypes()
 
 int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web::Response& response) const
 {
+    _logging(request._method);
+
     auto uri = request._uri;
     if (uri[0] != '/')
     {
@@ -44,7 +46,7 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
 
     auto fullPath = System::IO::Path::Combine(this->_root.FullName(), uri);
 
-    _logging(fullPath + "\n");
+    _logging(fullPath);
 
     for (auto header : request._headers)
     {
@@ -128,6 +130,9 @@ int FileSystemRequestHandler::ConstructResponse(const web::Request &request, web
             auto start = std::stoi(str_match_result[1]);
             auto end = str_match_result[2] != "" ? std::stoi(str_match_result[2]) : start + 500;
 
+            std::stringstream contentRange;
+            contentRange << "bytes " << start << "-" << (start+500) << "/" << response._response.size();
+            response._headers["Content-Range"] = contentRange.str();
             response._response = response._response.substr(start, end - start);
             response._responseCode = 206;
         }
